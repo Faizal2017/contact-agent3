@@ -18,7 +18,7 @@ RAG = os.getenv("RAG", "false").lower() == "true"
 CONTACTS_API_URL = os.getenv("CONTACTS_API_URL", "http://localhost:8000/api/contacts")
 
 APP_HOST = os.getenv("APP_HOST", "127.0.0.1")
-APP_PORT = int(os.getenv("APP_PORT", "7000"))
+APP_PORT = int(os.getenv("APP_PORT", "8001"))
 
 if not MONGO_URI:
     raise RuntimeError("MONGO_URI is not set. Copy .env.example to .env and fill it in.")

@@ -84,7 +84,7 @@ as well as native Atlas Vector Search.
 ## 5. Run the app
 
 ```bash
-uvicorn app.main:app --reload --port 7000
+uvicorn app.main:app --reload --port 8001
 ```
 
 On Windows PowerShell you can also run:
@@ -93,11 +93,11 @@ On Windows PowerShell you can also run:
 .\run-backend.ps1
 ```
 
-Open **http://localhost:7000** for the built-in chat UI (served from
+Open **http://localhost:8001** for the built-in chat UI (served from
 `static/index.html`), or call the API directly:
 
 ```bash
-curl -X POST http://localhost:7000/chat \
+curl -X POST http://localhost:8001/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "who works at Acme Corp?"}'
 ```
