@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rolodex · Contact Agent</title>
+<style>
+  :root {
+    --bg: #f3efe8;
+    --surface: #ffffff;
+    --surface-soft: rgba(255, 255, 255, 0.72);
+    --border: #ded5c7;
+    --text: #241d15;
+    --muted: #6f6558;
+    --faint: #978b7c;
+    --accent: #b9762a;
+    --accent-strong: #96591d;
+    --success: #18a37c;
+    --danger: #da5f69;
+    --font-display: 'Georgia', 'Times New Roman', serif;
+    --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input { font-family: inherit; }
+
+  ::selection { background: rgba(185, 118, 42, 0.22); color: var(--text); }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .layout {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    background:
+      radial-gradient(circle at top left, rgba(241, 230, 212, 0.8), transparent 34%),
+      linear-gradient(180deg, #fbfaf7 0%, #f3f0ea 100%);
+    color: var(--text);
+  }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 28px 22px;
+    border-right: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+  }
+
+  .rail__brand { display: flex; align-items: center; gap: 12px; }
+
+  .rail__mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, #fff7ea, #f1dcc0);
+    color: var(--accent);
+    font-size: 18px;
+    box-shadow: inset 0 0 0 1px rgba(154, 112, 54, 0.12);
+  }
+
+  .rail__title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+
+  .rail__subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .rail__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--faint);
+  }
+  .status-dot--ok { background: var(--success); box-shadow: 0 0 0 4px rgba(24, 163, 124, 0.12); }
+  .status-dot--down { background: var(--danger); box-shadow: 0 0 0 4px rgba(218, 95, 105, 0.12); }
+
+  .rail__divider { height: 1px; background: var(--border); }
+
+  .rail__eyebrow {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--faint);
+    text-transform: uppercase;
+  }
+
+  .rail__prompts { display: grid; gap: 10px; }
+
+  .prompt-chip {
+    text-align: left;
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px 13px;
+    font-size: 13px;
+    line-height: 1.45;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+  }
+  .prompt-chip:hover:not(:disabled) {
+    border-color: rgba(154, 112, 54, 0.34);
+    box-shadow: 0 8px 20px rgba(35, 30, 20, 0.05);
+    transform: translateY(-1px);
+  }
+  .prompt-chip:active:not(:disabled) { transform: translateY(0); }
+  .prompt-chip:disabled { opacity: 0.55; cursor: default; }
+
+  .rail__footer { margin-top: auto; font-size: 12px; line-height: 1.6; color: var(--muted); }
+
+  .stage { display: flex; flex-direction: column; min-width: 0; }
+
+  .stage__scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .stage__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 6px 2px 10px; }
+
+  .stage__title { margin: 0; font-family: var(--font-display); font-size: 18px; letter-spacing: 0.01em; }
+
+  .stage__subtitle { margin: 6px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; max-width: 56ch; }
+
+  .stage__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .ghost-button {
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .ghost-button:hover:not(:disabled) { background: #fff; border-color: rgba(154, 112, 54, 0.28); }
+  .ghost-button:disabled { opacity: 0.55; cursor: default; }
+
+  .empty-state { margin: auto; text-align: center; color: var(--muted); max-width: 460px; padding: 28px 18px; }
+  .empty-state__mark {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 14px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, #fff7ea, #f3dfc1);
+    color: var(--accent);
+    font-size: 24px;
+    box-shadow: inset 0 0 0 1px rgba(154, 112, 54, 0.12);
+  }
+  .empty-state h1 { font-family: var(--font-display); font-size: 22px; color: var(--text); font-weight: 700; margin: 0 0 8px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; margin: 0; }
+
+  .card-row { display: flex; width: 100%; }
+  .card-row--user { justify-content: flex-end; }
+  .card-row--assistant { justify-content: flex-start; }
+
+  .card {
+    position: relative;
+    max-width: min(720px, 78%);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 15px 16px 15px 18px;
+    box-shadow: 0 10px 24px rgba(26, 21, 15, 0.04);
+  }
+
+  .card-row--user .card {
+    background: linear-gradient(180deg, #fff8ed, #f8ecdb);
+    border-color: rgba(154, 112, 54, 0.18);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 4px;
+    background: var(--accent);
+    border-radius: 999px;
+    opacity: 0.75;
+  }
+
+  .card-row--user .card::before { background: var(--accent-strong); }
+
+  .card__tab { margin-bottom: 8px; }
+  .card__eyebrow { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; color: var(--faint); }
+
+  .card__body {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+
+  .card--pending { padding-top: 14px; padding-bottom: 14px; }
+
+  .typing { display: flex; gap: 4px; padding: 4px 0 2px; }
+  .typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--faint);
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.28; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-2px); }
+  }
+
+  .error-banner {
+    margin: 0 32px 8px;
+    background: rgba(218, 95, 105, 0.1);
+    border: 1px solid rgba(218, 95, 105, 0.25);
+    color: #a83e49;
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 13px;
+  }
+
+  .composer {
+    display: flex;
+    gap: 10px;
+    padding: 16px 32px 28px;
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+  }
+
+  .composer__input {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 13px 14px;
+    font-size: 14px;
+    font-family: var(--font-body);
+  }
+  .composer__input::placeholder { color: var(--faint); }
+  .composer__input:disabled { opacity: 0.65; }
+
+  .composer__send {
+    background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s ease, filter 0.15s ease;
+  }
+  .composer__send:hover:not(:disabled) { filter: brightness(1.03); transform: translateY(-1px); }
+  .composer__send:disabled { background: #ddd8cf; color: #8a8378; cursor: default; transform: none; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .rail { border-right: none; border-bottom: 1px solid var(--border); }
+    .stage__header { flex-direction: column; align-items: stretch; }
+  }
+
+  @media (max-width: 760px) {
+    .rail { padding: 18px 16px; }
+    .rail__prompts, .rail__footer { display: none; }
+    .stage__scroll { padding: 18px 14px 12px; }
+    .card { max-width: 92%; }
+    .composer { padding: 12px 14px 16px; }
+    .error-banner { margin: 0 14px 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="rail">
+      <div class="rail__brand">
+        <span class="rail__mark">&#9670;</span>
+        <div>
+          <div class="rail__title">ROLODEX</div>
+          <div class="rail__subtitle">contact agent</div>
+        </div>
+      </div>
+
+      <div class="rail__status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking...</span>
+      </div>
+
+      <div class="rail__divider"></div>
+
+      <div class="rail__eyebrow">Try asking</div>
+      <div class="rail__prompts" id="prompts"></div>
+
+      <div class="rail__footer">
+        Ask for a name, company, role, place, or describe the person you are looking for.
+      </div>
+    </aside>
+
+    <main class="stage">
+      <div class="stage__scroll" id="scroll">
+        <div class="stage__header">
+          <div>
+            <h1 class="stage__title">Contact search</h1>
+            <p class="stage__subtitle">
+              Chat with your contacts database in plain language. Try an exact lookup, a count, or a fuzzy question.
+            </p>
+          </div>
+          <div class="stage__actions">
+            <button class="ghost-button" id="newChat" type="button">New chat</button>
+          </div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+          <div class="empty-state__mark">&#9670;</div>
+          <h1>Ask about your contacts</h1>
+          <p>Names, companies, roles, locations, or just describe the kind of person you need.</p>
+        </div>
+
+        <div id="messages"></div>
+      </div>
+
+      <div class="error-banner" id="errorBanner" hidden></div>
+
+      <form class="composer" id="composer">
+        <input
+          class="composer__input"
+          id="q"
+          placeholder="Ask about your contacts..."
+          autocomplete="off"
+          autofocus
+        />
+        <button class="composer__send" id="send" type="submit">Send</button>
+      </form>
+    </main>
+  </div>
+
+<script>
+  const API_URL = '';
+  const EXAMPLE_PROMPTS = [
+    'Who works at Acme Corp?',
+    'How many contacts do we have in Germany?',
+    'Find someone who might know about marketing',
+  ];
+
+  const scrollEl = document.getElementById('scroll');
+  const messagesEl = document.getElementById('messages');
+  const emptyStateEl = document.getElementById('emptyState');
+  const qEl = document.getElementById('q');
+  const sendBtn = document.getElementById('send');
+  const composerEl = document.getElementById('composer');
+  const errorBannerEl = document.getElementById('errorBanner');
+  const statusDotEl = document.getElementById('statusDot');
+  const statusTextEl = document.getElementById('statusText');
+  const promptsEl = document.getElementById('prompts');
+  const newChatBtn = document.getElementById('newChat');
+
+  let history = [];
+  let loading = false;
+
+  function setStatus(status) {
+    statusDotEl.className = 'status-dot status-dot--' + status;
+    statusTextEl.textContent =
+      status === 'ok' ? 'Connected' : status === 'down' ? 'Backend unreachable' : 'Checking...';
+  }
+
+  function scrollToBottom() {
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+  }
+
+  function addBubble(role, text) {
+    emptyStateEl.style.display = 'none';
+
+    const row = document.createElement('div');
+    row.className = 'card-row card-row--' + role;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const tab = document.createElement('div');
+    tab.className = 'card__tab';
+    const eyebrow = document.createElement('span');
+    eyebrow.className = 'card__eyebrow';
+    eyebrow.textContent = role === 'user' ? 'YOU' : 'AGENT';
+    tab.appendChild(eyebrow);
+
+    const body = document.createElement('p');
+    body.className = 'card__body';
+    body.textContent = text;
+
+    card.appendChild(tab);
+    card.appendChild(body);
+    row.appendChild(card);
+    messagesEl.appendChild(row);
+    scrollToBottom();
+  }
+
+  function addTyping() {
+    const row = document.createElement('div');
+    row.className = 'card-row card-row--assistant';
+
+    const card = document.createElement('div');
+    card.className = 'card card--pending';
+
+    const tab = document.createElement('div');
+    tab.className = 'card__tab';
+    const eyebrow = document.createElement('span');
+    eyebrow.className = 'card__eyebrow';
+    eyebrow.textContent = 'AGENT';
+    tab.appendChild(eyebrow);
+
+    const typing = document.createElement('div');
+    typing.className = 'typing';
+    typing.appendChild(document.createElement('span'));
+    typing.appendChild(document.createElement('span'));
+    typing.appendChild(document.createElement('span'));
+
+    card.appendChild(tab);
+    card.appendChild(typing);
+    row.appendChild(card);
+    messagesEl.appendChild(row);
+    scrollToBottom();
+    return row;
+  }
+
+  function setError(msg) {
+    errorBannerEl.textContent = msg;
+    errorBannerEl.hidden = !msg;
+  }
+
+  async function sendMessage(text) {
+    const message = (text ?? qEl.value).trim();
+    if (!message || loading) return;
+
+    setError(null);
+    addBubble('user', message);
+    qEl.value = '';
+    loading = true;
+    sendBtn.disabled = true;
+    qEl.disabled = true;
+
+    const typingRow = addTyping();
+
+    try {
+      const res = await fetch(API_URL + '/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history }),
+      });
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+      const data = await res.json();
+      history = data.history;
+      typingRow.remove();
+      addBubble('assistant', data.answer);
+    } catch (e) {
+      typingRow.remove();
+      setError('Could not reach the agent. Is the backend running?');
+    } finally {
+      loading = false;
+      sendBtn.disabled = false;
+      qEl.disabled = false;
+      qEl.focus();
+    }
+  }
+
+  function resetChat() {
+    history = [];
+    messagesEl.innerHTML = '';
+    emptyStateEl.style.display = '';
+    setError(null);
+  }
+
+  composerEl.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage();
+  });
+
+  newChatBtn.addEventListener('click', resetChat);
+
+  EXAMPLE_PROMPTS.forEach((p) => {
+    const btn = document.createElement('button');
+    btn.className = 'prompt-chip';
+    btn.textContent = p;
+    btn.addEventListener('click', () => sendMessage(p));
+    promptsEl.appendChild(btn);
+  });
+
+  fetch(API_URL + '/health')
+    .then((r) => setStatus(r.ok ? 'ok' : 'down'))
+    .catch(() => setStatus('down'));
+</script>
+</body>
+</html>
