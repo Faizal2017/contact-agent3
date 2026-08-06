@@ -27,7 +27,7 @@ ENV/
 build/
 dist/
 *.egg-info/
-*.whl
+
 
 # Local databases and generated data
 *.sqlite
