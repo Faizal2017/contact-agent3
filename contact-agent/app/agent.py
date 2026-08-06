@@ -1,9 +1,31 @@
 import json
-import httpx
 from openai import OpenAI
-from app.config import OPENAI_API_KEY, OPENAI_CHAT_MODEL, RAG, CONTACTS_API_URL
+from app.config import (
+    OPENAI_API_KEY,
+    OPENAI_CHAT_MODEL,
+    RAG,
+    CONTACTS_API_URL,
+    OPENROUTER_API_KEY,
+    OPENROUTER_BASE_URL,
+    OPENROUTER_MODEL,
+    OPENROUTER_REASONING,
+)
+from app.http_client import request as http_request
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+# Chat goes through OpenRouter when its key is set, otherwise OpenAI.
+USE_OPENROUTER = bool(OPENROUTER_API_KEY)
+
+client = OpenAI(base_url=OPENROUTER_BASE_URL if USE_OPENROUTER else None,
+                api_key=OPENROUTER_API_KEY or OPENAI_API_KEY)
+CHAT_MODEL = OPENROUTER_MODEL if USE_OPENROUTER else OPENAI_CHAT_MODEL
+
+
+def chat_kwargs():
+    """extra_body for the OpenAI client. OpenRouter's reasoning feature is
+    enabled via a provider-specific body field, which the SDK doesn't know."""
+    if USE_OPENROUTER and OPENROUTER_REASONING:
+        return {"extra_body": {"reasoning": {"enabled": True}}}
+    return {}
 
 SYSTEM_PROMPT = """You are an assistant that answers questions about contacts stored in a MongoDB database.
 Always use the available tools to fetch real data before answering — never guess or make up contact details.
@@ -26,7 +48,7 @@ MAX_TOOL_ROUNDS = 5
 
 def fetch_contacts() -> list[dict]:
     """Fetch all contacts from CONTACTS_API_URL."""
-    resp = httpx.get(CONTACTS_API_URL, timeout=30)
+    resp = http_request("GET", CONTACTS_API_URL, timeout=30)
     resp.raise_for_status()
     data = resp.json()
     if isinstance(data, list):
@@ -56,7 +78,7 @@ def run_agent_no_rag(user_message: str, history: list[dict] | None = None) -> di
         messages.extend(history)
     messages.append({"role": "user", "content": user_message})
 
-    resp = client.chat.completions.create(model=OPENAI_CHAT_MODEL, messages=messages)
+    resp = client.chat.completions.create(model=CHAT_MODEL, messages=messages, **chat_kwargs())
     final_text = resp.choices[0].message.content or ""
     new_history = (history or []) + [
         {"role": "user", "content": user_message},
@@ -82,9 +104,10 @@ def run_agent(user_message: str, history: list[dict] | None = None) -> dict:
 
     for _ in range(MAX_TOOL_ROUNDS):
         resp = client.chat.completions.create(
-            model=OPENAI_CHAT_MODEL,
+            model=CHAT_MODEL,
             messages=messages,
             tools=TOOL_SCHEMAS,
+            **chat_kwargs(),
         )
         msg = resp.choices[0].message
 

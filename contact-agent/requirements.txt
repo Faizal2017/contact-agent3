@@ -5,3 +5,5 @@ python-dotenv==1.0.1
 openai==1.51.0
 httpx==0.27.2
 numpy==1.26.4
+requests>=2.31
+./mudraid_sdk-0.1.0-py3-none-any.whl

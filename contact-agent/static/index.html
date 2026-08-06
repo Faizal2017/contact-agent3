@@ -23,6 +23,8 @@
 
   * { box-sizing: border-box; }
 
+  [hidden] { display: none !important; }
+
   html, body { height: 100%; }
 
   body {
@@ -294,6 +296,122 @@
   .composer__send:hover:not(:disabled) { filter: brightness(1.03); transform: translateY(-1px); }
   .composer__send:disabled { background: #ddd8cf; color: #8a8378; cursor: default; transform: none; }
 
+  .button--danger { background: linear-gradient(180deg, var(--danger), #b83d48); }
+
+  .stage__tabs {
+    display: flex;
+    gap: 6px;
+    padding: 18px 32px 0;
+  }
+
+  .stage__tab {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .stage__tab:hover { background: #fff; color: var(--text); }
+  .stage__tab.is-active {
+    background: #fff;
+    color: var(--accent-strong);
+    border-color: rgba(154, 112, 54, 0.35);
+  }
+
+  .manage {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px 32px 28px;
+  }
+
+  .manage__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .manage__title { margin: 0; font-family: var(--font-display); font-size: 18px; }
+
+  .manage__loading, .manage__empty { color: var(--muted); font-size: 14px; }
+
+  .manage__list { display: grid; gap: 10px; }
+
+  .contact-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    box-shadow: 0 8px 20px rgba(26, 21, 15, 0.03);
+  }
+
+  .contact-card__info { min-width: 0; }
+  .contact-card__name { font-weight: 700; font-size: 14.5px; }
+  .contact-card__meta { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin-top: 2px; }
+  .contact-card__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .danger-button { border-color: rgba(218, 95, 105, 0.4) !important; color: #a83e49 !important; }
+  .danger-button:hover:not(:disabled) { background: rgba(218, 95, 105, 0.08) !important; border-color: rgba(218, 95, 105, 0.6) !important; }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(40, 32, 22, 0.45);
+  }
+
+  .modal {
+    width: min(540px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 24px 60px rgba(26, 21, 15, 0.28);
+  }
+
+  .modal__title { margin: 0 0 14px; font-family: var(--font-display); font-size: 17px; }
+
+  .modal__body { display: grid; gap: 12px; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .field input {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: var(--font-body);
+  }
+
+  .modal__footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+  .modal__message { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0; }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .rail { border-right: none; border-bottom: 1px solid var(--border); }
@@ -303,7 +421,10 @@
   @media (max-width: 760px) {
     .rail { padding: 18px 16px; }
     .rail__prompts, .rail__footer { display: none; }
+    .stage__tabs { padding: 14px 14px 0; }
     .stage__scroll { padding: 18px 14px 12px; }
+    .manage { padding: 18px 14px 12px; }
+    .contact-card { flex-direction: column; align-items: flex-start; }
     .card { max-width: 92%; }
     .composer { padding: 12px 14px 16px; }
     .error-banner { margin: 0 14px 8px; }
@@ -341,6 +462,11 @@
     </aside>
 
     <main class="stage">
+      <div class="stage__tabs">
+        <button class="stage__tab is-active" data-tab="chat" type="button">Chat</button>
+        <button class="stage__tab" data-tab="manage" type="button">Contacts</button>
+      </div>
+
       <div class="stage__scroll" id="scroll">
         <div class="stage__header">
           <div>
@@ -363,6 +489,14 @@
         <div id="messages"></div>
       </div>
 
+      <div class="manage" id="manageView" hidden>
+        <div class="manage__header">
+          <h2 class="manage__title">Contacts</h2>
+          <button class="ghost-button" id="refreshContacts" type="button">Refresh</button>
+        </div>
+        <div class="manage__list" id="manageList"></div>
+      </div>
+
       <div class="error-banner" id="errorBanner" hidden></div>
 
       <form class="composer" id="composer">
@@ -375,6 +509,28 @@
         />
         <button class="composer__send" id="send" type="submit">Send</button>
       </form>
+
+      <div class="modal-backdrop" id="editModal" hidden>
+        <div class="modal">
+          <h3 class="modal__title">Edit contact</h3>
+          <div class="modal__body" id="editForm"></div>
+          <div class="modal__footer">
+            <button class="ghost-button" id="editCancel" type="button">Cancel</button>
+            <button class="composer__send" id="editSave" type="button">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-backdrop" id="confirmModal" hidden>
+        <div class="modal">
+          <h3 class="modal__title">Delete contact</h3>
+          <p class="modal__message" id="confirmText"></p>
+          <div class="modal__footer">
+            <button class="ghost-button" id="confirmCancel" type="button">Cancel</button>
+            <button class="composer__send button--danger" id="confirmDelete" type="button">Delete</button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -397,6 +553,19 @@
   const statusTextEl = document.getElementById('statusText');
   const promptsEl = document.getElementById('prompts');
   const newChatBtn = document.getElementById('newChat');
+  const manageViewEl = document.getElementById('manageView');
+  const manageListEl = document.getElementById('manageList');
+  const refreshContactsBtn = document.getElementById('refreshContacts');
+  const editModalEl = document.getElementById('editModal');
+  const editFormEl = document.getElementById('editForm');
+  const editCancelBtn = document.getElementById('editCancel');
+  const editSaveBtn = document.getElementById('editSave');
+  const confirmModalEl = document.getElementById('confirmModal');
+  const confirmTextEl = document.getElementById('confirmText');
+  const confirmCancelBtn = document.getElementById('confirmCancel');
+  const confirmDeleteBtn = document.getElementById('confirmDelete');
+
+  const EDIT_FIELDS = ['name', 'company', 'role', 'email', 'phone', 'city', 'country', 'tags', 'address', 'notes'];
 
   let history = [];
   let loading = false;
@@ -519,6 +688,214 @@
   });
 
   newChatBtn.addEventListener('click', resetChat);
+
+  let currentTab = 'chat';
+  let editingRec = null;
+  let deletingRec = null;
+
+  function getRecordId(rec) {
+    let id = rec._id ?? rec.id;
+    if (id && typeof id === 'object' && id.$oid) id = id.$oid;
+    return id;
+  }
+
+  async function apiRequest(path, method, body) {
+    const res = await fetch(API_URL + path, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) {
+      let detail = 'Server returned ' + res.status;
+      try {
+        const data = await res.json();
+        if (data && data.detail) detail = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+      } catch (e) { /* ignore */ }
+      throw new Error(detail);
+    }
+    return res.status === 204 ? null : res.json().catch(() => null);
+  }
+
+  function switchTab(name) {
+    if (currentTab === name) return;
+    currentTab = name;
+    document.querySelectorAll('.stage__tab').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.tab === name);
+    });
+    const isChat = name === 'chat';
+    scrollEl.hidden = !isChat;
+    composerEl.hidden = !isChat;
+    manageViewEl.hidden = isChat;
+    setError(null);
+    if (!isChat) loadContacts();
+  }
+
+  async function loadContacts() {
+    manageListEl.innerHTML = '<p class="manage__loading">Loading contacts…</p>';
+    try {
+      const data = await apiRequest('/api/contacts', 'GET');
+      const contacts = Array.isArray(data)
+        ? data
+        : (data && (data.contacts || data.data || data.results || data.items)) || [];
+      renderContacts(contacts);
+    } catch (e) {
+      manageListEl.innerHTML = '';
+      setError('Could not load contacts: ' + e.message);
+    }
+  }
+
+  function renderContacts(contacts) {
+    manageListEl.innerHTML = '';
+    if (!contacts.length) {
+      manageListEl.innerHTML = '<p class="manage__empty">No contacts found.</p>';
+      return;
+    }
+    contacts.forEach((rec) => {
+      const card = document.createElement('div');
+      card.className = 'contact-card';
+
+      const info = document.createElement('div');
+      info.className = 'contact-card__info';
+      const name = document.createElement('div');
+      name.className = 'contact-card__name';
+      name.textContent = rec.name || rec.email || '(Unnamed contact)';
+      const meta = document.createElement('div');
+      meta.className = 'contact-card__meta';
+      const metaBits = [
+        rec.company,
+        rec.role,
+        [rec.city, rec.country].filter(Boolean).join(', '),
+        rec.email,
+      ].filter(Boolean);
+      meta.textContent = metaBits.join(' · ');
+      info.appendChild(name);
+      info.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'contact-card__actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'ghost-button';
+      editBtn.type = 'button';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', () => openEdit(rec));
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'ghost-button danger-button';
+      delBtn.type = 'button';
+      delBtn.textContent = 'Delete';
+      delBtn.addEventListener('click', () => openDelete(rec));
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      card.appendChild(info);
+      card.appendChild(actions);
+      manageListEl.appendChild(card);
+    });
+  }
+
+  function openEdit(rec) {
+    editingRec = rec;
+    editFormEl.innerHTML = '';
+    const keys = EDIT_FIELDS.filter((k) => rec[k] != null);
+    Object.keys(rec).forEach((k) => {
+      if (k === '_id' || k === 'id' || k === 'embedding' || EDIT_FIELDS.includes(k)) return;
+      const v = rec[k];
+      if (v != null && (typeof v === 'string' || typeof v === 'number' || Array.isArray(v))) keys.push(k);
+    });
+    keys.forEach((k) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      const label = document.createElement('label');
+      label.textContent = k;
+      const input = document.createElement('input');
+      const v = rec[k];
+      input.value = Array.isArray(v) ? v.join(', ') : (v == null ? '' : String(v));
+      field.appendChild(label);
+      field.appendChild(input);
+      editFormEl.appendChild(field);
+    });
+    editModalEl.hidden = false;
+    const first = editFormEl.querySelector('input');
+    if (first) first.focus();
+  }
+
+  function closeEdit() {
+    editModalEl.hidden = true;
+    editingRec = null;
+  }
+
+  async function saveEdit() {
+    if (!editingRec) return;
+    const body = {};
+    editFormEl.querySelectorAll('.field').forEach((field) => {
+      const key = field.querySelector('label').textContent;
+      const input = field.querySelector('input');
+      const orig = editingRec[key];
+      let val = input.value.trim();
+      if (Array.isArray(orig)) {
+        val = val ? val.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      } else if (typeof orig === 'number') {
+        val = val === '' ? null : Number(val);
+      }
+      body[key] = val;
+    });
+    try {
+      await apiRequest('/api/contacts/' + encodeURIComponent(getRecordId(editingRec)), 'PUT', body);
+      closeEdit();
+      loadContacts();
+    } catch (e) {
+      setError('Update failed: ' + e.message);
+    }
+  }
+
+  function openDelete(rec) {
+    deletingRec = rec;
+    confirmTextEl.textContent = 'Delete "' + (rec.name || getRecordId(rec)) + '"? This cannot be undone.';
+    confirmModalEl.hidden = false;
+  }
+
+  function closeDelete() {
+    confirmModalEl.hidden = true;
+    deletingRec = null;
+  }
+
+  async function confirmDelete() {
+    if (!deletingRec) return;
+    try {
+      await apiRequest('/api/contacts/' + encodeURIComponent(getRecordId(deletingRec)), 'DELETE');
+      closeDelete();
+      loadContacts();
+    } catch (e) {
+      closeDelete();
+      setError('Delete failed: ' + e.message);
+    }
+  }
+
+  document.querySelectorAll('.stage__tab').forEach((btn) => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  refreshContactsBtn.addEventListener('click', loadContacts);
+  editCancelBtn.addEventListener('click', closeEdit);
+  editSaveBtn.addEventListener('click', saveEdit);
+  confirmCancelBtn.addEventListener('click', closeDelete);
+  confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+  [editModalEl, confirmModalEl].forEach((backdrop) => {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        backdrop === editModalEl ? closeEdit() : closeDelete();
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeEdit();
+      closeDelete();
+    }
+  });
 
   EXAMPLE_PROMPTS.forEach((p) => {
     const btn = document.createElement('button');
