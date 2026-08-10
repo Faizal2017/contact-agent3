@@ -61,9 +61,28 @@ def _get_agent() -> Agent | None:
         return None
 
     agent = Agent()
-    logger.info("MudraID agent active: api_key_id=%s", agent.api_key_id)
+    # Refresh platform grants so newly added platforms in the portal
+    # are picked up immediately without recreating the Agent object.
+    try:
+        agent.refresh_platforms()
+        logger.info("MudraID agent active (platforms refreshed): api_key_id=%s", agent.api_key_id)
+    except Exception as exc:
+        logger.warning("MudraID refresh_platforms() failed: %s", exc)
+        logger.info("MudraID agent active: api_key_id=%s", agent.api_key_id)
     _agent = agent
     return agent
+
+
+def reset_agent():
+    """Force the MudraID agent to re-initialize on the next request.
+
+    Call this after granting a new platform in the MudraID portal so the
+    SDK picks up the updated platform list without a server restart.
+    """
+    global _agent, _mudraid_checked
+    _agent = None
+    _mudraid_checked = False
+    logger.info("MudraID agent reset; will re-initialize on next request")
 
 
 def request(method: str, url: str, **kwargs):
@@ -74,4 +93,4 @@ def request(method: str, url: str, **kwargs):
     return requests.request(method, url, **kwargs)
 
 
-__all__ = ["request", "MudraIDError", "requests"]
+__all__ = ["request", "reset_agent", "MudraIDError", "requests"]

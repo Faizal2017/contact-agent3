@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from app.agent import run_agent
 from app.config import APP_HOST, APP_PORT, RAG, CONTACTS_API_URL
-from app.http_client import request as http_request, MudraIDError
+from app.http_client import request as http_request, reset_agent, MudraIDError
 
 app = FastAPI(title="Contact Agent")
 
@@ -33,6 +33,17 @@ def chat(req: ChatRequest):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/refresh-agent")
+def refresh_agent():
+    """Force the MudraID agent to re-initialize and pick up new platform grants.
+
+    Call this after granting 'faizalplatform.mudraidtesting.online' (or any
+    other platform) to the agent in the MudraID portal.
+    """
+    reset_agent()
+    return {"status": "ok", "message": "MudraID agent reset. It will re-connect on the next request."}
 
 
 def _host_request(method: str, path: str, body: dict | None = None):
