@@ -5,17 +5,16 @@ contacts host API are automatically signed with a short-lived bearer
 token. When MUDRAID credentials are absent it falls back to plain
 ``requests`` so the app keeps working without the SDK.
 
-Note on bootstrap: the installed SDK (v0.1.0) discovers the agent's
-platforms via ``POST /api/v1/auth/agents/me/platforms``, an endpoint the
-current MudraID backend has removed. We inject the platform mapping
-directly from ``MUDRAID_PLATFORM_ID`` so the SDK skips that bootstrap;
-token minting and the automatic 401-refresh still run through the SDK's
-working code paths.
+Platform routing is the SDK's native bootstrap: the first call asks
+MudraID for the platforms this agent is registered with
+(``POST /api/v1/auth/agents/me/platforms``) and matches the request
+URL's host to the platform's verified hostname — no MUDRAID_PLATFORM_ID
+needed. Grant the platform to the agent in the portal first; otherwise
+the call fails with MudraIDPlatformNotRegisteredError.
 """
 
 import logging
 import os
-from urllib.parse import urlsplit
 
 import requests
 from dotenv import load_dotenv
@@ -55,34 +54,14 @@ def _get_agent() -> Agent | None:
 
     key_id = os.getenv("MUDRAID_API_KEY_ID", "").strip()
     secret = os.getenv("MUDRAID_SECRET", "").strip()
-    platform_id = os.getenv("MUDRAID_PLATFORM_ID", "").strip()
 
     if not key_id or not secret:
         logger.info("MudraID credentials not set; using plain requests")
         _agent = None
         return None
 
-    if not platform_id:
-        logger.warning(
-            "MudraID credentials are set but MUDRAID_PLATFORM_ID is missing; "
-            "using plain requests. Set MUDRAID_PLATFORM_ID to the UUID of your "
-            "contacts platform in the MudraID portal to activate signing."
-        )
-        _agent = None
-        return None
-
-    host = urlsplit(os.getenv("CONTACTS_API_URL", "")).hostname
-    if not host:
-        raise MudraIDError("CONTACTS_API_URL has no host; cannot resolve MudraID platform")
-
     agent = Agent()
-    agent._platforms._map = {host.lower(): platform_id}
-    logger.info(
-        "MudraID agent active: api_key_id=%s platform=%s host=%s",
-        agent.api_key_id,
-        platform_id,
-        host,
-    )
+    logger.info("MudraID agent active: api_key_id=%s", agent.api_key_id)
     _agent = agent
     return agent
 
