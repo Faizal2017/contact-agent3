@@ -46,3 +46,7 @@ Thumbs.db
 .cache/
 .tox/
 .nox/
+
+*.whl
+mudraid/
+mudraid_sdk-0.1.0.dist-info/
