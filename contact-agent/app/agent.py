@@ -23,9 +23,12 @@ CHAT_MODEL = OPENROUTER_MODEL if USE_OPENROUTER else OPENAI_CHAT_MODEL
 def chat_kwargs():
     """extra_body for the OpenAI client. OpenRouter's reasoning feature is
     enabled via a provider-specific body field, which the SDK doesn't know."""
-    if USE_OPENROUTER and OPENROUTER_REASONING:
-        return {"extra_body": {"reasoning": {"enabled": True}}}
-    return {}
+    kwargs = {}
+    if USE_OPENROUTER:
+        kwargs["max_tokens"] = 1000
+        if OPENROUTER_REASONING:
+            kwargs["extra_body"] = {"reasoning": {"enabled": True}}
+    return kwargs
 
 SYSTEM_PROMPT = """You are an assistant that answers questions about contacts stored in a MongoDB database.
 Always use the available tools to fetch real data before answering — never guess or make up contact details.
